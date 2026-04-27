@@ -1,0 +1,27 @@
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+GoogleService-Info.plist
+Firebase/
+
+# Node
+node_modules/
+dist/
+backend/dist/
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+*.moved-aside
+*.hmap
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+*.resolved

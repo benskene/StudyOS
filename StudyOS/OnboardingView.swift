@@ -118,7 +118,7 @@ private struct WelcomePage: View {
                 Text("School is a lot.\nWe make it simpler.")
                     .font(.system(.largeTitle, design: .rounded, weight: .bold))
 
-                Text("It's not that you can't do the work — it's knowing what to do right now. StudyOS gives you a clear plan every day.")
+                Text("It's not that you can't do the work — it's knowing what to do right now. Struc gives you a clear plan every day.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .lineSpacing(2)
@@ -154,7 +154,7 @@ private struct SolutionPage: View {
                 Text("Your daily\nstudy copilot.")
                     .font(.system(.largeTitle, design: .rounded, weight: .bold))
 
-                Text("StudyOS turns your assignments into a clear daily plan and helps you start with focused sprints.")
+                Text("Struc turns your assignments into a clear daily plan and helps you start with focused sprints.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .lineSpacing(2)

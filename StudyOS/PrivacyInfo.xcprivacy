@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Not used for cross-app advertising or tracking -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<!-- Required-reason APIs used by this app and its dependencies (Firebase, GoogleSignIn, GoogleUtilities) -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+
+		<!-- UserDefaults: used by the app itself (auth persistence, settings) and Firebase/Google SDKs -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- CA92.1: access info from the same app, extensions, or app groups -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+
+		<!-- File timestamps: used by Firebase SDKs for cache and log management -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- C617.1: access timestamps of files within the same app's container -->
+				<string>C617.1</string>
+				<!-- 0A2A.1: access timestamps in response to explicit user request -->
+				<string>0A2A.1</string>
+			</array>
+		</dict>
+
+		<!-- System boot time: used by Firebase Analytics (GoogleAppMeasurement) for session timing -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- 35F9.1: measure elapsed time for analytics/events, not sent off device with user identity -->
+				<string>35F9.1</string>
+			</array>
+		</dict>
+
+		<!-- Disk space: used by Firebase to manage local Firestore/Analytics storage -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- E174.1: check disk space before writing files to avoid errors -->
+				<string>E174.1</string>
+			</array>
+		</dict>
+
+	</array>
+
+	<!-- Data the app collects and sends off-device -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+
+		<!-- Email address — collected during sign-up/sign-in via Firebase Auth -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeEmailAddress</string>
+			<!-- Linked to user identity in Firebase Auth -->
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<!-- Not used for cross-app tracking or advertising -->
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+
+		<!-- User ID — Firebase UID used for Firestore sync -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeUserID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+
+		<!-- Product interaction — Firebase Analytics (GoogleAppMeasurement) collects app usage events -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<!-- Analytics events are not linked to a personally identifiable identity -->
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+
+	</array>
+</dict>
+</plist>

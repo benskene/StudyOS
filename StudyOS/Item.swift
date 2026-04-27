@@ -1,6 +1,6 @@
 //
 //  Item.swift
-//  StudyOS
+//  Struc
 //
 //  Created by Ben Skene on 2/2/26.
 //
