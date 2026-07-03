@@ -23,6 +23,8 @@ struct TodayScreen: View {
     @State private var editingPlanAssignment: Assignment?
     @State private var showEmptySchoolDayUpsell = false
     @State private var showUpgradeBanner = false
+    @State private var greetingGradientStart: UnitPoint = .leading
+    @State private var greetingGradientEnd: UnitPoint = .trailing
     private let calendar = Calendar.autoupdatingCurrent
 
     // MARK: - Derived data
@@ -96,6 +98,7 @@ struct TodayScreen: View {
             VStack(alignment: .leading, spacing: DS.Spacing.section) {
                 heroSection
                     .transition(.opacity)
+                    .cardEntrance(delay: 0)
                 if showUpgradeBanner {
                     ProUpgradeBanner {
                         UpsellTriggerManager.shared.suppressBannerForTwoWeeks()
@@ -105,14 +108,19 @@ struct TodayScreen: View {
                 }
                 nextActionCard
                     .transition(.opacity)
+                    .cardEntrance(delay: 0.08)
                 todayPlanSection
                     .transition(.opacity)
+                    .cardEntrance(delay: 0.16)
                 priorityViewSection
                     .transition(.opacity)
+                    .cardEntrance(delay: 0.24)
                 newUpcomingSection
                     .transition(.opacity)
+                    .cardEntrance(delay: 0.32)
                 doneSection
                     .transition(.opacity)
+                    .cardEntrance(delay: 0.38)
                 syncSection
                     .transition(.opacity)
             }
@@ -182,6 +190,10 @@ struct TodayScreen: View {
             assignmentStore.refreshTomorrowPreviewIfNeeded()
             checkEmptySchoolDayUpsell()
             checkBannerVisibility()
+            withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                greetingGradientStart = .topTrailing
+                greetingGradientEnd = .bottomLeading
+            }
         }
         .sheet(isPresented: $showEmptySchoolDayUpsell) {
             ProPaywallView(trigger: .emptyAppOnSchoolDay) {
@@ -230,19 +242,63 @@ struct TodayScreen: View {
 
     // MARK: - Hero
 
+    private var greetingText: String {
+        let hour = Calendar.autoupdatingCurrent.component(.hour, from: Date())
+        switch hour {
+        case 0..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        default: return "Good evening"
+        }
+    }
+
+    private var todayCompletedCount: Int {
+        planSlots.filter { $0.assignment.isCompleted }.count
+    }
+
+    private var todayTotalCount: Int {
+        max(planSlots.count, 1)
+    }
 
     private var heroSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-            Text("Today")
-                .font(.largeTitle.weight(.bold))
-            Text(headerDateText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if !incompleteAssignments.isEmpty {
-                Text("\(incompleteAssignments.count) task\(incompleteAssignments.count == 1 ? "" : "s") remaining")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 2)
+        VStack(alignment: .leading, spacing: DS.Spacing.standard) {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text(greetingText)
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "#0A84FF"), Color(hex: "#BF5AF2"), Color(hex: "#FF375F")],
+                            startPoint: greetingGradientStart,
+                            endPoint: greetingGradientEnd
+                        )
+                    )
+                Text(headerDateText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            if todayTotalCount > 0 {
+                let progress = min(1.0, Double(todayCompletedCount) / Double(todayTotalCount))
+                VStack(alignment: .leading, spacing: DS.Spacing.micro) {
+                    HStack {
+                        Text("\(todayCompletedCount) of \(todayTotalCount) tasks done")
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Text("\(Int(progress * 100))%")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(hex: "#0A84FF"), Color(hex: "#BF5AF2")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: todayCompletedCount)
+                    }
+                    GradientProgressBar(progress: progress)
+                }
+                .padding(DS.Spacing.standard)
+                .elevatedCard()
             }
         }
     }
@@ -300,8 +356,16 @@ struct TodayScreen: View {
                         .font(.body.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
-                        .foregroundStyle(DS.Colors.primaryButtonFg)
-                        .background(DS.Colors.primaryButtonBg, in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous))
+                        .foregroundStyle(.white)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "#0A84FF"), Color(hex: "#6E3AFA")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                        )
+                        .glowing(color: Color(hex: "#0A84FF"), radius: 6)
                 }
                 .buttonStyle(PressScaleButtonStyle())
                 .lockedIfNotPro(isPro: subscriptionManager.isPremium, trigger: .focusSprints, cornerRadius: DS.Radius.control)
@@ -318,8 +382,16 @@ struct TodayScreen: View {
                         .font(.body.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
-                        .foregroundStyle(DS.Colors.primaryButtonFg)
-                        .background(DS.Colors.primaryButtonBg, in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous))
+                        .foregroundStyle(.white)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "#0A84FF"), Color(hex: "#6E3AFA")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                        )
+                        .glowing(color: Color(hex: "#0A84FF"), radius: 6)
                 }
                 .buttonStyle(PressScaleButtonStyle())
             }
@@ -346,6 +418,11 @@ struct TodayScreen: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .center) {
+                    ConfettiView()
+                        .offset(y: -10)
+                }
             } else if planSlots.isEmpty {
                 Text("No plan yet. Add an assignment or tap Rebuild.")
                     .font(.body)
@@ -354,6 +431,7 @@ struct TodayScreen: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(planSlots.enumerated()), id: \.element.assignment.id) { index, slot in
                         planRow(slot: slot.slot, assignment: slot.assignment)
+                            .cardEntrance(delay: Double(index) * 0.07)
                         if index < planSlots.count - 1 {
                             Divider().overlay(DS.Border.color)
                         }
@@ -430,10 +508,37 @@ struct TodayScreen: View {
 
     // MARK: - Priority View
 
+    private func priorityRankColor(_ index: Int) -> Color {
+        switch index {
+        case 0: return DS.Colors.must
+        case 1: return DS.Colors.should
+        default: return DS.Colors.quickWin
+        }
+    }
+
+    @ViewBuilder
+    private func priorityRankBadge(index: Int) -> some View {
+        let color = priorityRankColor(index)
+        if index == 0 {
+            Text("1")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(color, in: Circle())
+                .glowing(color: color, radius: 5)
+                .pulseRing(color: color)
+        } else {
+            Text("\(index + 1)")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(color, in: Circle())
+        }
+    }
+
     private var priorityViewSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.standard) {
-            Text("Priority View")
-                .font(.title3.weight(.semibold))
+            SectionHeader("Priority View")
 
             let topPriority = Array(
                 incompleteAssignments
@@ -449,17 +554,26 @@ struct TodayScreen: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(topPriority.enumerated()), id: \.element.id) { index, assignment in
                         HStack(spacing: DS.Spacing.standard) {
-                            Text("\(index + 1)")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(DS.Colors.secondaryText)
-                                .frame(width: 16)
+                            priorityRankBadge(index: index)
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(assignment.title)
                                     .font(.body)
                                     .lineLimit(1)
-                                Text(dueText(for: assignment))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: DS.Spacing.xs) {
+                                    Text(dueText(for: assignment))
+                                        .font(.caption)
+                                        .foregroundStyle(isOverdue(assignment) ? DS.Colors.destructive : .secondary)
+                                    if !assignment.courseName.isEmpty {
+                                        Text("·")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+                                        Text(assignment.courseName)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
                             }
                             Spacer(minLength: 0)
                         }

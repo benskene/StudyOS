@@ -304,3 +304,174 @@ struct MetricBar: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.82), value: clampedProgress)
     }
 }
+
+// MARK: - Glow
+
+struct GlowModifier: ViewModifier {
+    let color: Color
+    let radius: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .shadow(color: color.opacity(0.65), radius: radius / 2)
+            .shadow(color: color.opacity(0.4), radius: radius)
+            .shadow(color: color.opacity(0.2), radius: radius * 2)
+    }
+}
+
+extension View {
+    func glowing(color: Color = .accentColor, radius: CGFloat = 8) -> some View {
+        modifier(GlowModifier(color: color, radius: radius))
+    }
+}
+
+// MARK: - Pulse Ring
+
+struct PulseRingModifier: ViewModifier {
+    let color: Color
+    @State private var pulsing = false
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                Circle()
+                    .fill(color.opacity(0.35))
+                    .scaleEffect(pulsing ? 2.2 : 1)
+                    .opacity(pulsing ? 0 : 1)
+                    .animation(.easeOut(duration: 1.2).repeatForever(autoreverses: false), value: pulsing)
+            )
+            .onAppear { pulsing = true }
+    }
+}
+
+extension View {
+    func pulseRing(color: Color) -> some View {
+        modifier(PulseRingModifier(color: color))
+    }
+}
+
+// MARK: - Card Entrance
+
+struct CardEntranceModifier: ViewModifier {
+    let delay: Double
+    @State private var appeared = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 20)
+            .onAppear {
+                withAnimation(.spring(response: 0.52, dampingFraction: 0.82).delay(delay)) {
+                    appeared = true
+                }
+            }
+    }
+}
+
+extension View {
+    func cardEntrance(delay: Double = 0) -> some View {
+        modifier(CardEntranceModifier(delay: delay))
+    }
+}
+
+// MARK: - Shimmer
+
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = -1.5
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .white.opacity(0.45), location: 0.5),
+                            .init(color: .clear, location: 1),
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 0.6)
+                    .offset(x: geo.size.width * phase)
+                }
+                .allowsHitTesting(false)
+            )
+            .clipped()
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 2
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
+    }
+}
+
+// MARK: - Gradient Progress Bar
+
+struct GradientProgressBar: View {
+    let progress: Double
+    var colors: [Color] = [Color(hex: "#0A84FF"), Color(hex: "#BF5AF2")]
+
+    private var clamped: Double { min(1, max(0, progress)) }
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.secondary.opacity(0.12))
+                Capsule()
+                    .fill(LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing))
+                    .frame(width: max(4, geo.size.width * clamped))
+            }
+        }
+        .frame(height: 6)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: clamped)
+    }
+}
+
+// MARK: - Confetti
+
+private struct ConfettiParticle: View {
+    let symbol: String
+    let xOffset: CGFloat
+    let delay: Double
+    @State private var fly = false
+
+    var body: some View {
+        Text(symbol)
+            .font(.system(size: 22))
+            .offset(x: xOffset, y: fly ? -100 : 0)
+            .opacity(fly ? 0 : 1)
+            .scaleEffect(fly ? 0.4 : 1)
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.1).delay(delay)) {
+                    fly = true
+                }
+            }
+    }
+}
+
+struct ConfettiView: View {
+    private let particles: [(String, CGFloat, Double)] = [
+        ("🎉", -70, 0.0), ("⭐", -35, 0.08), ("✨", 5, 0.17),
+        ("🎊", 42, 0.12), ("🌟", 78, 0.04), ("🎯", -55, 0.22),
+    ]
+
+    var body: some View {
+        ZStack {
+            ForEach(particles.indices, id: \.self) { i in
+                ConfettiParticle(
+                    symbol: particles[i].0,
+                    xOffset: particles[i].1,
+                    delay: particles[i].2
+                )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
