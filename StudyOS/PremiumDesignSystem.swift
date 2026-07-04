@@ -260,15 +260,15 @@ struct SectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(DS.Type.sectionHeader)
+                Text(title).font(DS.Typography.sectionHeader)
                 if let subtitle {
-                    Text(subtitle).font(DS.Type.caption).foregroundStyle(.secondary)
+                    Text(subtitle).font(DS.Typography.caption).foregroundStyle(.secondary)
                 }
             }
             if let actionLabel, let action {
                 Spacer()
                 Button(actionLabel, action: action)
-                    .font(DS.Type.label)
+                    .font(DS.Typography.label)
                     .foregroundStyle(DS.Colors.brandAlt)
             }
         }
@@ -295,10 +295,10 @@ struct EmptyStateView: View {
 
             VStack(spacing: DS.Spacing.xs) {
                 Text(title)
-                    .font(compact ? DS.Type.bodyMedium : DS.Type.sectionHeader)
+                    .font(compact ? DS.Typography.bodyMedium : DS.Typography.sectionHeader)
                     .multilineTextAlignment(.center)
                 Text(message)
-                    .font(compact ? DS.Type.caption : .subheadline)
+                    .font(compact ? DS.Typography.caption : .subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -341,7 +341,7 @@ struct SlotBadge: View {
 
     var body: some View {
         Text(label)
-            .font(DS.Type.microLabel)
+            .font(DS.Typography.microLabel)
             .foregroundStyle(color)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
@@ -369,7 +369,7 @@ struct EnergyBadge: View {
     var body: some View {
         HStack(spacing: 3) {
             Circle().fill(color).frame(width: 5, height: 5)
-            Text(label).font(DS.Type.microLabel).foregroundStyle(color)
+            Text(label).font(DS.Typography.microLabel).foregroundStyle(color)
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
@@ -401,8 +401,8 @@ struct ProgressRing: View {
                 )
                 .rotationEffect(.degrees(-90))
             VStack(spacing: 2) {
-                Text(valueText).font(DS.Type.metricSmall)
-                Text(label).font(DS.Type.caption).foregroundStyle(.secondary)
+                Text(valueText).font(DS.Typography.metricSmall)
+                Text(label).font(DS.Typography.caption).foregroundStyle(.secondary)
             }
         }
         .frame(width: 126, height: 126)
@@ -424,9 +424,9 @@ struct MetricBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.micro) {
             HStack {
-                Text(title).font(DS.Type.body)
+                Text(title).font(DS.Typography.body)
                 Spacer()
-                Text(valueText).font(DS.Type.bodyMedium)
+                Text(valueText).font(DS.Typography.bodyMedium)
             }
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
