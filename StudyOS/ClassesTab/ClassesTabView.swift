@@ -152,7 +152,7 @@ struct ClassesTabView: View {
                         .font(.subheadline)
                         .foregroundStyle(.white)
                         .frame(width: 30, height: 30)
-                        .background(Color.blue, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(DS.Gradient.brand, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Google Classroom")
                             .font(.caption.weight(.semibold))
@@ -183,7 +183,7 @@ struct ClassesTabView: View {
                         .font(.subheadline)
                         .foregroundStyle(.white)
                         .frame(width: 30, height: 30)
-                        .background(Color.red, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(DS.Colors.must, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Canvas")
                             .font(.caption.weight(.semibold))
@@ -300,42 +300,17 @@ struct ClassesTabView: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: DS.Spacing.standard) {
-            Spacer(minLength: 64)
-
-            Image(systemName: "list.bullet.clipboard")
-                .font(.system(size: 52, weight: .light))
-                .foregroundStyle(DS.Colors.secondaryText)
-
-            VStack(spacing: DS.Spacing.xs) {
-                Text("No classes yet")
-                    .font(.title3.weight(.semibold))
-                Text("Add your classes to organize\nassignments by subject.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button {
-                showAddCourse = true
-            } label: {
-                Text("Add your first class")
-                    .font(.body.weight(.semibold))
-                    .padding(.horizontal, DS.Spacing.section)
-                    .padding(.vertical, 13)
-                    .foregroundStyle(DS.Colors.primaryButtonFg)
-                    .background(
-                        DS.Colors.primaryButtonBg,
-                        in: Capsule()
-                    )
-            }
-            .buttonStyle(PressScaleButtonStyle())
-            .padding(.top, DS.Spacing.xs)
-
-            Spacer(minLength: 64)
+        VStack {
+            Spacer(minLength: 60)
+            EmptyStateView(
+                icon: "list.bullet.clipboard",
+                title: "No classes yet",
+                message: "Add your classes to organize assignments by subject.",
+                ctaLabel: "Add your first class",
+                action: { showAddCourse = true }
+            )
+            Spacer(minLength: 60)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, DS.Spacing.section)
     }
 }
 
@@ -465,14 +440,12 @@ private struct CourseSectionView: View {
                         .padding(.leading, DS.Spacing.standard)
 
                     if assignments.isEmpty {
-                        HStack {
-                            Text("No assignments")
-                                .font(.subheadline)
-                                .foregroundStyle(DS.Colors.secondaryText)
-                            Spacer()
-                        }
-                        .padding(.horizontal, DS.Spacing.standard)
-                        .padding(.vertical, DS.Spacing.micro)
+                        EmptyStateView(
+                            icon: "doc.text",
+                            title: "No assignments",
+                            message: "Tap + to add one for this class.",
+                            compact: true
+                        )
                     } else {
                         ForEach(assignments) { assignment in
                             AssignmentRow(

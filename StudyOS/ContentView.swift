@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import SwiftData
 import UserNotifications
+import UIKit
 
 struct ContentView: View {
     private enum Tab: Hashable {
@@ -9,6 +10,19 @@ struct ContentView: View {
         case week
         case classes
         case insights
+    }
+
+    init() {
+        // Brand-color active tab tint
+        UITabBar.appearance().tintColor = UIColor(DS.Colors.brand)
+
+        // Translucent material background with a subtle top border
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
+        appearance.shadowColor = UIColor(white: 0, alpha: 0.08)
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false

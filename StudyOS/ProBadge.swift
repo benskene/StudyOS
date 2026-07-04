@@ -19,14 +19,7 @@ struct ProBadge: View {
             .foregroundStyle(.black)
             .padding(.horizontal, hPad)
             .padding(.vertical, vPad)
-            .background(
-                LinearGradient(
-                    colors: [Color(hex: "#F5A623"), Color(hex: "#F7C948")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                in: Capsule()
-            )
+            .background(DS.Gradient.proGold, in: Capsule())
 
         if let onTap {
             Button(action: onTap) { label }

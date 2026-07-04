@@ -69,15 +69,15 @@ struct InsightsRootScreen: View {
 
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 52, weight: .light))
-                    .foregroundStyle(DS.Colors.secondaryText)
+                    .foregroundStyle(DS.Gradient.brand)
 
                 VStack(spacing: DS.Spacing.micro) {
                     HStack(spacing: DS.Spacing.xs) {
                         Text("Insights")
-                            .font(.title.weight(.bold))
+                            .font(DS.Typography.hero)
                         ProBadge(size: .small)
                     }
-                    Text("Track your focus minutes, streaks,\ncompletion rates, and behavior trends.")
+                    Text("Track your focus minutes, streaks, completion rates, and behavior trends.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -95,12 +95,7 @@ struct InsightsRootScreen: View {
                 Button {
                     showPaywall = true
                 } label: {
-                    Text("Unlock Insights")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(DS.Colors.primaryButtonFg)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(DS.Colors.primaryButtonBg, in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous))
+                    Text("Unlock Insights").brandButtonLabel()
                 }
                 .buttonStyle(PressScaleButtonStyle())
             }
@@ -114,12 +109,14 @@ struct InsightsRootScreen: View {
             VStack(alignment: .leading, spacing: DS.Spacing.section) {
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     Text("Insights")
-                        .font(.largeTitle.weight(.bold))
+                        .font(DS.Typography.hero)
+                        .foregroundStyle(DS.Gradient.brand)
                     Text("Your weekly focus and consistency at a glance.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .transition(.opacity)
+                .cardEntrance(delay: 0)
 
                 VStack(alignment: .leading, spacing: DS.Spacing.standard) {
                     SectionHeader("This week")
@@ -176,34 +173,29 @@ struct InsightsRootScreen: View {
                 .elevatedCard()
                 .transition(.opacity)
 
-                HStack(alignment: .top, spacing: 12) {
-                    Rectangle()
-                        .fill(DS.Colors.accent)
+                HStack(alignment: .top, spacing: DS.Spacing.standard) {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(DS.Gradient.brand)
                         .frame(width: 3)
-                        .cornerRadius(2)
                     VStack(alignment: .leading, spacing: DS.Spacing.micro) {
                         Text("Behavior Insight")
-                            .font(.headline)
+                            .font(DS.Typography.sectionHeader)
                         Text(insight.headline)
-                            .font(.body)
+                            .font(DS.Typography.body)
                         Text("Try this: \(insight.action)")
-                            .font(.caption)
+                            .font(DS.Typography.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
                 .padding(DS.Spacing.standard)
                 .elevatedCard()
                 .transition(.opacity)
+                .cardEntrance(delay: 0.2)
 
                 NavigationLink {
                     AnalyticsDashboardScreen()
                 } label: {
-                    Text("Open full analytics")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .foregroundStyle(.primary)
-                        .background(DS.Colors.secondaryButtonBg, in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous))
+                    Text("Open full analytics").secondaryButtonLabel()
                 }
                 .buttonStyle(PressScaleButtonStyle())
             }
@@ -217,30 +209,20 @@ struct InsightsRootScreen: View {
     // MARK: - Sub-views
 
     private func metricProgressRow(title: String, valueText: String, subtitle: String, progress: Double) -> some View {
-        let clamped = min(1, max(0, progress))
-        return VStack(alignment: .leading, spacing: DS.Spacing.micro) {
+        VStack(alignment: .leading, spacing: DS.Spacing.micro) {
             HStack(alignment: .firstTextBaseline) {
                 Text(title)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(valueText)
-                    .font(.title2.weight(.semibold))
+                    .font(DS.Typography.metricSmall)
                     .foregroundStyle(.primary)
+                    .contentTransition(.numericText())
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(DS.Colors.progressTrack)
-                        .frame(height: 6)
-                    Capsule()
-                        .fill(DS.Colors.accent)
-                        .frame(width: max(4, geo.size.width * clamped), height: 6)
-                }
-            }
-            .frame(height: 6)
+            GradientProgressBar(progress: progress)
             Text(subtitle)
-                .font(.caption)
+                .font(DS.Typography.caption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -267,7 +249,7 @@ private struct InsightsLockedRow: View {
         HStack(spacing: DS.Spacing.standard) {
             Image(systemName: icon)
                 .font(.body)
-                .foregroundStyle(DS.Colors.accent)
+                .foregroundStyle(DS.Gradient.brand)
                 .frame(width: 24)
             Text(text)
                 .font(.subheadline)

@@ -10,7 +10,9 @@ import SwiftData
 
 struct WeekViewScreen: View {
     @EnvironmentObject private var assignmentStore: AssignmentStore
-    @Query(sort: \Assignment.dueDate) private var assignments: [Assignment]
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var sprintSessionManager: SprintSessionManager
+    @Query(filter: #Predicate<Assignment> { !$0.isDeleted }, sort: \Assignment.dueDate) private var assignments: [Assignment]
     @State private var spreadProposal: [WorkloadMove] = []
     @State private var isShowingSpreadConfirm = false
     @State private var isShowingAddAssignment = false
@@ -68,10 +70,23 @@ struct WeekViewScreen: View {
         return "\(start) – \(end)"
     }
 
+    private var weekTotalMinutes: Int {
+        weekAssignments.reduce(0) { $0 + $1.estMinutes }
+    }
+
+    private var weekCompletedCount: Int {
+        guard let range = weekDateProvider.weekRange() else { return 0 }
+        return assignments.filter { $0.isCompleted && $0.dueDate >= range.lowerBound && $0.dueDate < range.upperBound }.count
+    }
+
+    private var weekTotalCount: Int {
+        guard let range = weekDateProvider.weekRange() else { return 0 }
+        return assignments.filter { $0.dueDate >= range.lowerBound && $0.dueDate < range.upperBound }.count
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.standard) {
-                // Date range subtitle
                 Text(weekRangeLabel)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -80,6 +95,7 @@ struct WeekViewScreen: View {
                 if weekAssignments.isEmpty {
                     emptyWeekState
                 } else {
+                    weeklySummaryCard
                     overloadBanner
                     weekColumns
                 }
@@ -105,6 +121,8 @@ struct WeekViewScreen: View {
             NavigationStack {
                 AddAssignmentScreen()
                     .environmentObject(assignmentStore)
+                    .environmentObject(subscriptionManager)
+                    .environmentObject(sprintSessionManager)
             }
         }
         .confirmationDialog("Apply suggested workload moves?", isPresented: $isShowingSpreadConfirm) {
@@ -122,6 +140,50 @@ struct WeekViewScreen: View {
             )
             .environmentObject(assignmentStore)
         }
+    }
+
+    // MARK: - Weekly Summary
+
+    private var weeklySummaryCard: some View {
+        HStack(spacing: DS.Spacing.section) {
+            summaryStatView(
+                value: "\(weekAssignments.count)",
+                label: "Due",
+                icon: "doc.text",
+                color: DS.Colors.brandAlt
+            )
+            summaryStatView(
+                value: "\(weekCompletedCount)",
+                label: "Done",
+                icon: "checkmark.circle.fill",
+                color: DS.Colors.success
+            )
+            summaryStatView(
+                value: weekTotalMinutes >= 60 ? "\(weekTotalMinutes / 60)h" : "\(weekTotalMinutes)m",
+                label: "Est. work",
+                icon: "clock",
+                color: DS.Colors.warning
+            )
+        }
+        .frame(maxWidth: .infinity)
+        .padding(DS.Spacing.standard)
+        .elevatedCard()
+    }
+
+    private func summaryStatView(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: DS.Spacing.xs) {
+            Image(systemName: icon)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(color)
+                .frame(width: 32, height: 32)
+                .background(color.opacity(0.12), in: Circle())
+            Text(value)
+                .font(DS.Typography.metricSmall)
+            Text(label)
+                .font(DS.Typography.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Overload Banner
@@ -150,9 +212,9 @@ struct WeekViewScreen: View {
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(DS.Colors.warning)
                                 .background(
-                                    Color.orange.opacity(0.12),
+                                    DS.Colors.warning.opacity(0.12),
                                     in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
                                 )
                         }
@@ -163,11 +225,11 @@ struct WeekViewScreen: View {
                 .padding(DS.Spacing.standard)
                 .background(
                     RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
-                        .fill(Color.orange.opacity(0.07))
+                        .fill(DS.Colors.warning.opacity(0.07))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
-                        .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                        .stroke(DS.Colors.warning.opacity(0.2), lineWidth: 1)
                 )
             }
         }
@@ -211,30 +273,31 @@ struct WeekViewScreen: View {
                         .foregroundStyle(today ? .white : .secondary)
 
                     ZStack {
-                        Circle()
-                            .fill(today ? Color.accentColor : Color.clear)
-                            .frame(width: 32, height: 32)
+                        if today {
+                            Circle()
+                                .fill(DS.Gradient.brand)
+                                .frame(width: 32, height: 32)
+                        } else {
+                            Circle()
+                                .fill(Color.clear)
+                                .frame(width: 32, height: 32)
+                        }
                         Text(dateLabel(for: date))
-                            .font(.title3.weight(.semibold))
+                            .font(DS.Typography.sectionHeader)
                             .foregroundStyle(today ? .white : .primary)
                     }
 
                     // Workload bar
                     VStack(alignment: .leading, spacing: 3) {
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(Color.secondary.opacity(0.12))
-                                Capsule()
-                                    .fill(isOverloaded ? Color.orange : Color.accentColor)
-                                    .frame(width: geo.size.width * loadFraction)
-                            }
-                        }
-                        .frame(height: 5)
-
+                        GradientProgressBar(
+                            progress: loadFraction,
+                            colors: isOverloaded
+                                ? [DS.Colors.warning, DS.Colors.must]
+                                : [DS.Colors.brand, DS.Colors.brandAlt]
+                        )
                         Text("\(loadMinutes) min")
-                            .font(.caption2)
-                            .foregroundStyle(isOverloaded ? .orange : .secondary)
+                            .font(DS.Typography.microLabel)
+                            .foregroundStyle(isOverloaded ? DS.Colors.warning : .secondary)
                     }
                     .padding(.top, 2)
                 }
@@ -272,7 +335,7 @@ struct WeekViewScreen: View {
         .overlay(
             RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
                 .stroke(
-                    today ? Color.accentColor.opacity(0.45) : DS.Border.color,
+                    today ? DS.Colors.brand.opacity(0.5) : DS.Border.color,
                     lineWidth: today ? 1.5 : DS.Border.width
                 )
         )
@@ -345,34 +408,26 @@ struct WeekViewScreen: View {
     // MARK: - Empty States
 
     private var emptyDayState: some View {
-        VStack {
-            Image(systemName: "tray")
+        VStack(spacing: DS.Spacing.xs) {
+            Image(systemName: "moon.stars")
                 .font(.title3)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DS.Gradient.brand)
             Text("Free")
-                .font(.caption)
+                .font(DS.Typography.caption)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 60)
     }
 
     private var emptyWeekState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "calendar.badge.plus")
-                .font(.system(size: 36))
-                .foregroundStyle(DS.Colors.tertiaryText)
-            Text("No tasks scheduled this week")
-                .font(.subheadline)
-                .foregroundStyle(DS.Colors.secondaryText)
-            Button("Add a task") {
-                isShowingAddAssignment = true
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(DS.Colors.accent)
-        }
-        .frame(maxWidth: .infinity, minHeight: 280)
-        .multilineTextAlignment(.center)
-        .padding(.top, 60)
+        EmptyStateView(
+            icon: "calendar.badge.plus",
+            title: "Free week ahead",
+            message: "No assignments due this week. Add one to get started.",
+            ctaLabel: "Add assignment",
+            action: { isShowingAddAssignment = true }
+        )
+        .padding(.top, 40)
     }
 
     // MARK: - Helpers
@@ -538,7 +593,7 @@ private struct DayDetailView: View {
                                 } label: {
                                     Image(systemName: assignment.isCompleted ? "checkmark.circle.fill" : "circle")
                                         .font(.title3)
-                                        .foregroundStyle(assignment.isCompleted ? .secondary : Color.accentColor)
+                                        .foregroundStyle(assignment.isCompleted ? .secondary : DS.Colors.brandAlt)
                                         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: assignment.isCompleted)
                                 }
                                 .buttonStyle(.plain)

@@ -263,14 +263,8 @@ struct TodayScreen: View {
         VStack(alignment: .leading, spacing: DS.Spacing.standard) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text(greetingText)
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color(hex: "#0A84FF"), Color(hex: "#BF5AF2"), Color(hex: "#FF375F")],
-                            startPoint: greetingGradientStart,
-                            endPoint: greetingGradientEnd
-                        )
-                    )
+                    .font(DS.Typography.hero)
+                    .foregroundStyle(DS.Gradient.brandAnimated(start: greetingGradientStart, end: greetingGradientEnd))
                 Text(headerDateText)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -285,13 +279,7 @@ struct TodayScreen: View {
                         Spacer()
                         Text("\(Int(progress * 100))%")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color(hex: "#0A84FF"), Color(hex: "#BF5AF2")],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .foregroundStyle(DS.Gradient.brandHorizontal)
                             .contentTransition(.numericText())
                             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: todayCompletedCount)
                     }
@@ -323,19 +311,13 @@ struct TodayScreen: View {
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
-                    ProgressView(value: activeSprintProgress(for: session))
-                        .tint(Color.accentColor)
+                    GradientProgressBar(progress: activeSprintProgress(for: session))
                 }
 
                 Button {
                     isShowingStartMode = true
                 } label: {
-                    Text("View Sprint")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .foregroundStyle(.primary)
-                        .background(DS.Colors.secondaryButtonBg, in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous))
+                    Text("View Sprint").secondaryButtonLabel()
                 }
                 .buttonStyle(PressScaleButtonStyle())
 
@@ -352,48 +334,20 @@ struct TodayScreen: View {
                 Button {
                     startVisibleAssignment(nextUp)
                 } label: {
-                    Text("Start sprint")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .foregroundStyle(.white)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: "#0A84FF"), Color(hex: "#6E3AFA")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
-                        )
-                        .glowing(color: Color(hex: "#0A84FF"), radius: 6)
+                    Text("Start sprint").brandButtonLabel()
                 }
                 .buttonStyle(PressScaleButtonStyle())
                 .lockedIfNotPro(isPro: subscriptionManager.isPremium, trigger: .focusSprints, cornerRadius: DS.Radius.control)
 
             } else {
-                Text("No open tasks. Add one to build your plan.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    isShowingAddAssignment = true
-                } label: {
-                    Label("Add assignment", systemImage: "plus")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .foregroundStyle(.white)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: "#0A84FF"), Color(hex: "#6E3AFA")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            in: RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
-                        )
-                        .glowing(color: Color(hex: "#0A84FF"), radius: 6)
-                }
-                .buttonStyle(PressScaleButtonStyle())
+                EmptyStateView(
+                    icon: "tray",
+                    title: "Nothing to tackle",
+                    message: "Add an assignment to build your plan.",
+                    ctaLabel: "Add assignment",
+                    action: { isShowingAddAssignment = true },
+                    compact: true
+                )
             }
         }
         .padding(DS.Spacing.standard)
@@ -424,9 +378,14 @@ struct TodayScreen: View {
                         .offset(y: -10)
                 }
             } else if planSlots.isEmpty {
-                Text("No plan yet. Add an assignment or tap Rebuild.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                EmptyStateView(
+                    icon: "calendar.badge.clock",
+                    title: "No plan yet",
+                    message: "Tap Rebuild to generate today's plan.",
+                    ctaLabel: "Rebuild plan",
+                    action: { assignmentStore.rebuildDailyPlan() },
+                    compact: true
+                )
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(planSlots.enumerated()), id: \.element.assignment.id) { index, slot in
@@ -473,13 +432,13 @@ struct TodayScreen: View {
                     Button("Start") {
                         startVisibleAssignment(assignment)
                     }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(DS.Colors.accent)
-                    .cornerRadius(20)
-                    .lockedIfNotPro(isPro: subscriptionManager.isPremium, trigger: .focusSprints, cornerRadius: 20)
+                    .font(DS.Typography.label)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(DS.Gradient.brandHorizontal, in: Capsule())
+                    .glowing(color: DS.Colors.brand, radius: 4)
+                    .lockedIfNotPro(isPro: subscriptionManager.isPremium, trigger: .focusSprints, cornerRadius: DS.Radius.chip)
                 }
             } else {
                 Image(systemName: "checkmark.circle.fill")
@@ -547,9 +506,12 @@ struct TodayScreen: View {
             )
 
             if topPriority.isEmpty {
-                Text("Add assignments to see urgency ranking.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                EmptyStateView(
+                    icon: "chart.bar",
+                    title: "Nothing ranked yet",
+                    message: "Add assignments to see your urgency ranking.",
+                    compact: true
+                )
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(topPriority.enumerated()), id: \.element.id) { index, assignment in
@@ -600,12 +562,14 @@ struct TodayScreen: View {
             let tasksToShow = nextUp == nil ? incompleteAssignments : upcomingAssignments
 
             if tasksToShow.isEmpty {
-                Text(assignments.isEmpty
-                    ? "No assignments yet. Add one to get started."
-                    : "Nothing else in the queue."
+                EmptyStateView(
+                    icon: assignments.isEmpty ? "sparkles" : "checkmark.circle",
+                    title: assignments.isEmpty ? "All clear" : "Queue empty",
+                    message: assignments.isEmpty ? "No assignments yet. Add one to get started." : "Nothing else waiting.",
+                    ctaLabel: assignments.isEmpty ? "Add assignment" : nil,
+                    action: assignments.isEmpty ? { isShowingAddAssignment = true } : nil,
+                    compact: true
                 )
-                .font(.body)
-                .foregroundStyle(.secondary)
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(tasksToShow.enumerated()), id: \.element.id) { index, assignment in

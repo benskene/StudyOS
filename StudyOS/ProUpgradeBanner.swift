@@ -12,8 +12,8 @@ struct ProUpgradeBanner: View {
                 HStack(spacing: DS.Spacing.xs) {
                     ProBadge(size: .small)
                     Text("Upgrade to Struc Pro")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(Color(hex: "#F5A623"))
+                        .font(DS.Typography.label)
+                        .foregroundStyle(DS.Colors.proAccent)
                 }
                 Text(valueProp)
                     .font(.subheadline.weight(.medium))
@@ -22,7 +22,7 @@ struct ProUpgradeBanner: View {
                     showPaywall = true
                 }
                 .font(.caption)
-                .foregroundStyle(DS.Colors.accent)
+                .foregroundStyle(DS.Colors.brandAlt)
                 .buttonStyle(.plain)
             }
             Spacer(minLength: 0)
@@ -35,11 +35,7 @@ struct ProUpgradeBanner: View {
             .buttonStyle(.plain)
         }
         .padding(DS.Spacing.standard)
-        .background(DS.cardBackground, in: RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
-                .stroke(Color(hex: "#F5A623").opacity(0.35), lineWidth: 1)
-        )
+        .promoCard()
         .onAppear { valueProp = UpsellTriggerManager.shared.nextValueProp() }
         .sheet(isPresented: $showPaywall) {
             ProPaywallView(trigger: .homeBanner) {
