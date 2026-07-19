@@ -75,7 +75,7 @@ authRouter.get("/callback", async (req, res) => {
   const statePayload = verifyOAuthState(state);
   if (!statePayload) {
     logError("OAuth state verification failed", new Error("invalid_state"), { route: req.originalUrl });
-    res.status(400).redirect(`${env.GOOGLE_OAUTH_FAILURE_REDIRECT}?reason=invalid_state`);
+    res.redirect(`${env.GOOGLE_OAUTH_FAILURE_REDIRECT}?reason=invalid_state`);
     return;
   }
 

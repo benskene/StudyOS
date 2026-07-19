@@ -11,6 +11,10 @@ import { logError, logInfo } from "./utils/logger";
 
 const app = express();
 
+// Behind Railway's proxy: required so req.protocol/req.ip reflect the real
+// request — express-rate-limit v7 rejects X-Forwarded-For without this.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(express.json({ limit: "100kb" }));
 
