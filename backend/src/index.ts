@@ -7,6 +7,7 @@ import { importRouter } from "./routes/importRoutes";
 import { syncV1Router } from "./routes/v1/syncRoutes";
 import { analyticsV1Router } from "./routes/v1/analyticsRoutes";
 import { integrationsV1Router } from "./routes/v1/integrationRoutes";
+import { applyMigrations } from "./db/applyMigrations";
 import { logError, logInfo } from "./utils/logger";
 
 const app = express();
@@ -34,6 +35,17 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(env.PORT, () => {
-  logInfo(`Struc backend listening on port ${env.PORT}`);
-});
+async function start() {
+  try {
+    await applyMigrations();
+  } catch (error) {
+    // Serve /health regardless; DB-backed routes will surface their own errors.
+    logError("Failed to apply migrations on boot", error);
+  }
+
+  app.listen(env.PORT, () => {
+    logInfo(`Struc backend listening on port ${env.PORT}`);
+  });
+}
+
+void start();
