@@ -71,17 +71,18 @@ importRouter.post(
       }
 
       const service = new CanvasService(authRecord.canvasDomain, authRecord.canvasAccessToken);
-      const assignments = await service.fetchAndNormalizeAssignments(
+      const { courses, assignments } = await service.fetchCoursesAndAssignments(
         new Set(payload.existingExternalIds)
       );
 
       logInfo("Canvas import completed", {
         userId,
         route: req.originalUrl,
+        courseCount: courses.length,
         importedCount: assignments.length
       });
 
-      res.status(200).json(assignments);
+      res.status(200).json({ courses, assignments });
     } catch (error) {
       logError("Canvas import failed", error, { userId, route: req.originalUrl });
       res.status(500).json({ error: "Failed to import Canvas assignments" });

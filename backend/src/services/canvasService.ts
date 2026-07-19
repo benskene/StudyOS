@@ -84,9 +84,9 @@ export class CanvasService {
       }));
   }
 
-  async fetchAndNormalizeAssignments(
+  async fetchCoursesAndAssignments(
     existingExternalIds: Set<string>
-  ): Promise<CanvasNormalizedAssignment[]> {
+  ): Promise<{ courses: CanvasCourse[]; assignments: CanvasNormalizedAssignment[] }> {
     const courses = await this.fetchCourses();
 
     const perCourse = await Promise.all(
@@ -119,6 +119,6 @@ export class CanvasService {
       });
     }
 
-    return normalized;
+    return { courses, assignments: normalized };
   }
 }
