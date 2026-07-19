@@ -1,4 +1,5 @@
 import type { CanvasCourse, CanvasAssignment, CanvasNormalizedAssignment } from "../types/canvas";
+import { logInfo } from "../utils/logger";
 
 function normalizeDomain(raw: string): string {
   return raw.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
@@ -40,9 +41,16 @@ export class CanvasService {
       "/api/v1/courses?enrollment_type=student&enrollment_state=active&per_page=100&state[]=available"
     );
 
-    return courses
+    const usable = courses
       .filter((c) => c.workflow_state === "available" && c.id && c.name)
       .map((c) => ({ id: String(c.id), name: c.name }));
+
+    logInfo("Canvas courses fetched", {
+      returnedByCanvas: courses.length,
+      usableStudentCourses: usable.length
+    });
+
+    return usable;
   }
 
   async fetchAssignmentsForCourse(courseId: string): Promise<CanvasAssignment[]> {
@@ -58,8 +66,15 @@ export class CanvasService {
       `/api/v1/courses/${courseId}/assignments?per_page=100&order_by=due_at`
     );
 
-    return assignments
-      .filter((a) => a.id && a.name && a.due_at)
+    const withDueDate = assignments.filter((a) => a.id && a.name && a.due_at);
+
+    logInfo("Canvas course assignments fetched", {
+      courseId,
+      returnedByCanvas: assignments.length,
+      withDueDate: withDueDate.length
+    });
+
+    return withDueDate
       .map((a) => ({
         id: String(a.id),
         name: a.name,
