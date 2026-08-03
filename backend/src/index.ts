@@ -4,6 +4,7 @@ import { env } from "./config/env";
 import { authRouter } from "./routes/authRoutes";
 import { canvasRouter } from "./routes/canvasRoutes";
 import { importRouter } from "./routes/importRoutes";
+import { syllabusRouter } from "./routes/syllabusRoutes";
 import { syncV1Router } from "./routes/v1/syncRoutes";
 import { analyticsV1Router } from "./routes/v1/analyticsRoutes";
 import { integrationsV1Router } from "./routes/v1/integrationRoutes";
@@ -26,6 +27,7 @@ app.get("/health", (_req, res) => {
 app.use("/auth", authRouter);
 app.use("/auth/canvas", canvasRouter);
 app.use("/import", importRouter);
+app.use("/import", syllabusRouter);
 app.use("/v1/sync", syncV1Router);
 app.use("/v1/analytics", analyticsV1Router);
 app.use("/v1/integrations", integrationsV1Router);

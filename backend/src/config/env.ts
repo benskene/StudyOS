@@ -21,7 +21,14 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z.string().min(1),
   OAUTH_STATE_TTL_MS: z.coerce.number().default(10 * 60 * 1000),
   IMPORT_RATE_LIMIT_MAX: z.coerce.number().default(10),
-  IMPORT_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60 * 1000)
+  IMPORT_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60 * 1000),
+  // Syllabus parsing. ANTHROPIC_API_KEY is optional so the server still boots
+  // without it; the /import/syllabus route returns 503 until it's configured.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  SYLLABUS_MODEL: z.string().default("claude-opus-5"),
+  SYLLABUS_MAX_FILE_MB: z.coerce.number().default(20),
+  SYLLABUS_RATE_LIMIT_MAX: z.coerce.number().default(12),
+  SYLLABUS_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60 * 60 * 1000)
 });
 
 export const env = envSchema.parse({
@@ -39,5 +46,10 @@ export const env = envSchema.parse({
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
   OAUTH_STATE_TTL_MS: process.env.OAUTH_STATE_TTL_MS,
   IMPORT_RATE_LIMIT_MAX: process.env.IMPORT_RATE_LIMIT_MAX,
-  IMPORT_RATE_LIMIT_WINDOW_MS: process.env.IMPORT_RATE_LIMIT_WINDOW_MS
+  IMPORT_RATE_LIMIT_WINDOW_MS: process.env.IMPORT_RATE_LIMIT_WINDOW_MS,
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+  SYLLABUS_MODEL: process.env.SYLLABUS_MODEL,
+  SYLLABUS_MAX_FILE_MB: process.env.SYLLABUS_MAX_FILE_MB,
+  SYLLABUS_RATE_LIMIT_MAX: process.env.SYLLABUS_RATE_LIMIT_MAX,
+  SYLLABUS_RATE_LIMIT_WINDOW_MS: process.env.SYLLABUS_RATE_LIMIT_WINDOW_MS
 });
