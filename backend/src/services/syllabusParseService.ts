@@ -86,9 +86,16 @@ export async function parseSyllabus(
 
   const response = await client.messages.create({
     model: env.SYLLABUS_MODEL,
-    max_tokens: 16000,
+    // Thinking is on by default on Sonnet 5 / Opus 5 and is billed against
+    // max_tokens, so the ceiling has to cover reasoning *plus* the deadline
+    // JSON — a dense syllabus is 3-4k tokens of JSON on its own. Too low and
+    // the response comes back stop_reason "max_tokens" on a perfectly normal
+    // syllabus. "medium" effort keeps latency inside the client's 180s
+    // timeout; schema-constrained extraction doesn't need deeper deliberation.
+    max_tokens: 32000,
     system: SYSTEM_PROMPT.replace("{{TODAY}}", today),
     output_config: {
+      effort: "medium",
       format: {
         type: "json_schema",
         schema: parsedSyllabusJsonSchema as unknown as Record<string, unknown>

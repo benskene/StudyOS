@@ -25,10 +25,20 @@ const envSchema = z.object({
   // Syllabus parsing. ANTHROPIC_API_KEY is optional so the server still boots
   // without it; the /import/syllabus route returns 503 until it's configured.
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
-  SYLLABUS_MODEL: z.string().default("claude-opus-5"),
+  // Sonnet 5 matches Opus 5's high-resolution vision tier (2576px), which is
+  // what scanned/photographed syllabi actually depend on, at ~40% of the cost.
+  SYLLABUS_MODEL: z.string().default("claude-sonnet-5"),
   SYLLABUS_MAX_FILE_MB: z.coerce.number().default(20),
   SYLLABUS_RATE_LIMIT_MAX: z.coerce.number().default(12),
-  SYLLABUS_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60 * 60 * 1000)
+  SYLLABUS_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60 * 60 * 1000),
+  // Cached parses go stale slowly: the prompt infers unstated years from
+  // today's date, so bound reuse to roughly one academic year.
+  SYLLABUS_CACHE_TTL_DAYS: z.coerce.number().default(180),
+  // Billable-parse quota per user. Most students carry <= 6 courses, so this
+  // is invisible in normal use and exists to cap runaway spend. Cache hits
+  // are free and do not count against it.
+  SYLLABUS_USER_PARSE_LIMIT: z.coerce.number().default(15),
+  SYLLABUS_USER_PARSE_WINDOW_DAYS: z.coerce.number().default(120)
 });
 
 export const env = envSchema.parse({
@@ -51,5 +61,8 @@ export const env = envSchema.parse({
   SYLLABUS_MODEL: process.env.SYLLABUS_MODEL,
   SYLLABUS_MAX_FILE_MB: process.env.SYLLABUS_MAX_FILE_MB,
   SYLLABUS_RATE_LIMIT_MAX: process.env.SYLLABUS_RATE_LIMIT_MAX,
-  SYLLABUS_RATE_LIMIT_WINDOW_MS: process.env.SYLLABUS_RATE_LIMIT_WINDOW_MS
+  SYLLABUS_RATE_LIMIT_WINDOW_MS: process.env.SYLLABUS_RATE_LIMIT_WINDOW_MS,
+  SYLLABUS_CACHE_TTL_DAYS: process.env.SYLLABUS_CACHE_TTL_DAYS,
+  SYLLABUS_USER_PARSE_LIMIT: process.env.SYLLABUS_USER_PARSE_LIMIT,
+  SYLLABUS_USER_PARSE_WINDOW_DAYS: process.env.SYLLABUS_USER_PARSE_WINDOW_DAYS
 });
